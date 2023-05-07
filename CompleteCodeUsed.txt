@@ -1,0 +1,336 @@
+CREATE DATABASE SchoolManagementSystem;
+
+CREATE TABLE Students (
+	student_id INT NOT NULL AUTO_INCREMENT,
+    first_name VARCHAR(50) NOT NULL,
+    last_name VARCHAR(50) NOT NULL,
+    date_of_birth DATE NOT NULL,
+    gender ENUM('male', 'female', 'other') NOT NULL,
+    address VARCHAR(100) NOT NULL,
+    email_address VARCHAR(100) NOT NULL,
+    PRIMARY KEY (student_id)
+);
+
+CREATE TABLE Classes (
+	class_id INT NOT NULL AUTO_INCREMENT,
+    class_name VARCHAR(50) NOT NULL,
+    classroom_number VARCHAR(50) NOT NULL,
+    PRIMARY KEY (class_id)
+);
+
+CREATE TABLE Enrollments (
+	enrollment_id INT NOT NULL AUTO_INCREMENT,
+    enrollment_date DATE NOT NULL,
+    class_id INT NOT NULL,
+    student_id INT NOT NULL,
+    PRIMARY KEY (enrollment_id),
+    FOREIGN KEY (class_id) REFERENCES Classes(class_id),
+    FOREIGN KEY (student_id) REFERENCES Students(student_id)
+);
+
+CREATE TABLE Timetable (
+	timetable_id INT NOT NULL AUTO_INCREMENT,
+    day_of_the_week ENUM('Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday') NOT NULL,
+    start_time TIME NOT NULL,
+    end_time TIME NOT NULL,
+    PRIMARY KEY (timetable_id)
+);
+
+CREATE TABLE Class_timetables (
+	class_timetable_id INT NOT NULL AUTO_INCREMENT,
+    class_id INT NOT NULL,
+    timetable_id INT NOT NULL,
+    PRIMARY KEY (class_timetable_id),
+    FOREIGN KEY (class_id) REFERENCES Classes(class_id),
+    FOREIGN KEY (timetable_id) REFERENCES Timetable(timetable_id)
+);
+
+CREATE TABLE Attendance (
+	attendance_id INT NOT NULL AUTO_INCREMENT,
+    attendance_status ENUM('Present', 'Absent'),
+    class_timetable_id INT NOT NULL,
+    student_id INT NOT NULL,
+    PRIMARY KEY (attendance_id),
+    FOREIGN KEY (class_timetable_id) REFERENCES Class_timetables(class_timetable_id),
+    FOREIGN KEY (student_id) REFERENCES Students(student_id)
+);
+
+CREATE TABLE Attendance_dates (
+	attendance_dates_id INT NOT NULL AUTO_INCREMENT,
+    attendance_date DATE NOT NULL,
+    attendance_id INT NOT NULL,
+    PRIMARY KEY (attendance_dates_id),
+    FOREIGN KEY (attendance_id) REFERENCES Attendance(attendance_id)
+);
+
+CREATE TABLE Subjects (
+	subject_id INT NOT NULL AUTO_INCREMENT,
+    subject_name VARCHAR(50) NOT NULL,
+    subject_description VARCHAR(1000),
+    PRIMARY KEY (subject_id)
+);
+
+CREATE TABLE Class_subjects (
+	class_subject_id INT NOT NULL AUTO_INCREMENT,
+    class_id INT NOT NULL,
+    subject_id INT NOT NULL,
+    PRIMARY KEY (class_subject_id),
+    FOREIGN KEY (class_id) REFERENCES Classes(class_id),
+    FOREIGN KEY (subject_id) REFERENCES Subjects(subject_id)
+);
+
+CREATE TABLE Teachers (
+	teacher_id INT NOT NULL AUTO_INCREMENT,
+    first_name VARCHAR (50) NOT NULL,
+    last_name VARCHAR (50) NOT NULL,
+    date_of_birth DATE NOT NULL,
+    gender ENUM('male', 'female', 'other') NOT NULL,
+    address VARCHAR(100) NOT NULL,
+    email_address VARCHAR(100) NOT NULL,
+    PRIMARY KEY (teacher_id)
+);
+
+CREATE TABLE Teacher_subjects (
+	teacher_subjects_id INT NOT NULL AUTO_INCREMENT,
+    teacher_id INT NOT NULL,
+    subject_id INT NOT NULL,
+    PRIMARY KEY (teacher_subjects_id),
+    FOREIGN KEY (teacher_id) REFERENCES Teachers(teacher_id),
+    FOREIGN KEY (subject_id) REFERENCES Subjects(subject_id)
+);
+
+CREATE TABLE Grades (
+	grade_id INT NOT NULL AUTO_INCREMENT,
+    grade INT NOT NULL,
+    assignment_type VARCHAR(30),
+    student_id INT NOT NULL,
+    subject_id INT NOT NULL,
+    PRIMARY KEY (grade_id),
+    FOREIGN KEY (student_id) REFERENCES Students(student_id),
+    FOREIGN KEY (subject_id) REFERENCES Subjects(subject_id)
+);
+
+ALTER TABLE Students
+ADD CONSTRAINT email_address_unique 
+UNIQUE (email_address);
+
+ALTER TABLE Teachers
+ADD CONSTRAINT email_address_unique 
+UNIQUE (email_address);
+
+ALTER TABLE Classes
+ADD CONSTRAINT unique_class_name
+UNIQUE (class_name);
+
+ALTER TABLE Subjects
+ADD CONSTRAINT unique_subject_name
+UNIQUE (subject_name);
+
+-- Prevents a student from enrolling in the same class multiple times
+ALTER TABLE Enrollments
+ADD CONSTRAINT unique_enrollment 
+UNIQUE (class_id, student_id);
+
+ALTER TABLE Timetable 
+ADD CONSTRAINT check_start_time_before_end_time 
+CHECK (start_time < end_time);
+
+-- Prevents inserting values that are not between 1 and 5
+ALTER TABLE Grades
+ADD CONSTRAINT grade_range
+CHECK (grade >= 1 AND grade <= 5);
+
+INSERT INTO schoolmanagementsystem.Students (first_name, last_name, date_of_birth, gender, address, email_address) 
+VALUES
+('Giorno' , 'Giovanna' , '2011-04-16', 'Other', 'Viale F. Ruffo di Calabria', 'giorno.giovanna@email.com'),
+('Yaya' , 'Toure' , '2012-02-08', 'Male', 'Oxford Street II', 'yaya.toure@live.com'),
+('Method' , 'Man' , '2011-10-23', 'Male', 'Staten Island Hill', 'method.man@email.com'),
+('Mikasa' , 'Ackerman' , '2011-09-02', 'Female', 'Paradis Island Boulevard', 'mikasa.ackerman@email.com'),
+('Carl' , 'Johnson' , '2011-11-29', 'Male', 'Grove Street', 'carl.johnson@live.com'),
+('Amy' , 'Winehouse' , '2012-07-11', 'Female', 'Forest Hill 21', 'amy.winehouse@yahoo.com'),
+('Donatella' , 'Versace' , '2012-04-13', 'Female', 'Female', 'dona.versace@email.com'),
+('Ariana' , 'Jaeger' , '2010-02-16', 'Other', 'London Street 33', 'giorno.giovanna@yahoo.com'),
+('Gojo' , 'Satoru' , '2010-01-30', 'Male', 'Trap Street 7', 'gojo.satoru@email.com'),
+('Jotaro' , 'Kujo' , '2012-12-31', 'Male', 'Morioh Hill 22', 'jotaro.kujo@live.com');
+
+SELECT * FROM students;
+
+INSERT INTO schoolmanagementsystem.Subjects (subject_name, subject_description) 
+VALUES 
+('Mathematics', 'Study of numbers, quantities, and shapes'),
+('English', 'Study of the English language and literature'),
+('History', 'Study of past events, particularly in human affairs'),
+('Science', 'Study of the natural world through observation and experiment'),
+('Art', 'Study of creativity and self-expression through various mediums'),
+('Physical Education', 'Study of physical fitness and sports activities'),
+('Social Studies', 'Study of human society and culture'),
+('Computer Science', 'Study of computers and computing technology'),
+('Music', 'Study of musical theory and performance'),
+('Marine Biology', 'Marine biology studies ocean life, ecosystems, and conservation strategies');
+
+SELECT * FROM subjects;
+
+INSERT INTO schoolmanagementsystem.Teachers (first_name, last_name, date_of_birth, gender, address, email_address)
+VALUES
+('John', 'Smith', '1980-05-14', 'Male', '123 Main St', 'john.smith@yahoo.com'),
+('Emily', 'Jones', '1985-02-22', 'Female', '456 Park Ave', 'emily.jones@hotmail.com'),
+('David', 'Lee', '1978-11-08', 'Other', '789 Broadway', 'david.lee@live.com'),
+('Sarah', 'Johnson', '1983-09-10', 'Female', '101 State St', 'sarah.johnson@yahoo.com'),
+('Michael', 'Brown', '1975-07-03', 'Other', '555 Elm St', 'michael.brown@gmail.com'),
+('Jessica', 'Davis', '1989-04-17', 'Female', '888 Pine St', 'jessica.davis@yahoo.com'),
+('Matthew', 'Wilson', '1982-01-29', 'Other', '222 Oak St', 'matthew.wilson@live.com'),
+('Rachel', 'Taylor', '1987-12-11', 'Female', '444 Maple Ave', 'rachel.taylor@gmail.com'),
+('Christopher', 'Anderson', '1979-06-26', 'Other', '777 Cedar St', 'christopher.anderson@yahoo.com'),
+('Stephanie', 'Moore', '1984-03-08', 'Female', '333 Walnut St', 'stephanie.moore@gmail.com');
+
+SELECT * FROM teachers;
+
+INSERT INTO timetable (day_of_the_week, start_time, end_time)
+VALUES
+('Monday', '09:00:00', '10:30:00'),
+('Monday', '11:00:00', '12:30:00'),
+('Tuesday', '10:00:00', '11:30:00'),
+('Tuesday', '13:00:00', '14:30:00'),
+('Wednesday', '14:00:00', '15:30:00'),
+('Wednesday', '16:00:00', '17:30:00'),
+('Thursday', '12:00:00', '13:30:00'),
+('Thursday', '14:00:00', '15:30:00'),
+('Friday', '11:00:00', '12:30:00'),
+('Friday', '15:00:00', '16:30:00');
+
+SELECT * FROM timetable;
+
+INSERT INTO classes (class_name, classroom_number)
+VALUES
+('I-A', 'A101'),
+('II-A', 'B202'),
+('II-B', 'B203'),
+('III-A', 'C303'),
+('IV-B', 'D404'),
+('V-A', 'E505'),
+('V-C', 'E507'),
+('VI-B', 'F606'),
+('VII-A', 'G707'),
+('VIII-B', 'H808');
+
+SELECT * FROM classes;
+
+INSERT INTO class_timetables (class_id, timetable_id)
+VALUES
+(1, 3),
+(2, 7),
+(3, 1),
+(4, 9),
+(5, 2),
+(6, 6),
+(7, 4),
+(8, 10),
+(9, 5),
+(10, 8);
+
+SELECT * FROM class_timetables;
+
+INSERT INTO attendance (attendance_status, class_timetable_id, student_id)
+VALUES 
+('Present', 1, 1),
+('Present', 2, 2),
+('Absent', 3, 3),
+('Present', 4, 4),
+('Absent', 5, 5),
+('Present', 6, 6),
+('Absent', 7, 7),
+('Absent', 8, 8),
+('Present', 9, 9),
+('Present', 10, 10);
+
+SELECT * FROM attendance;
+
+INSERT INTO attendance_dates (attendance_date, attendance_id)
+VALUES 
+('2023-05-01', 1),
+('2023-05-02', 2),
+('2023-05-03', 3),
+('2023-05-04', 4),
+('2023-05-05', 5),
+('2023-05-06', 6),
+('2023-05-07', 7),
+('2023-05-08', 8),
+('2023-05-09', 9),
+('2023-05-10', 10);
+
+SELECT * FROM attendance_dates;
+
+INSERT INTO teacher_subjects (teacher_id, subject_id)
+VALUES 
+(1, 3),
+(2, 6),
+(3, 4),
+(4, 7),
+(5, 1),
+(6, 9),
+(7, 2),
+(8, 8),
+(9, 5),
+(10, 2);
+
+SELECT * FROM teacher_subjects;
+
+INSERT INTO class_subjects (class_id, subject_id)
+VALUES 
+(1, 2),
+(1, 5),
+(1, 8),
+(2, 1),
+(2, 4),
+(3, 3),
+(4, 5),
+(5, 9),
+(6, 2),
+(7, 6);
+
+SELECT * FROM class_subjects;
+
+INSERT INTO enrollments (enrollment_date, class_id, student_id)
+VALUES 
+('2022-01-01', 1, 1),
+('2022-01-02', 1, 2),
+('2022-01-03', 1, 3),
+('2022-01-04', 2, 4),
+('2022-01-05', 2, 5),
+('2022-01-06', 3, 6),
+('2022-01-07', 3, 7),
+('2022-01-08', 3, 8),
+('2022-01-09', 4, 9),
+('2022-01-10', 5, 10),
+('2022-01-11', 6, 1),
+('2022-01-12', 7, 2),
+('2022-01-13', 8, 3),
+('2022-01-14', 9, 4),
+('2022-01-15', 10, 5);
+
+SELECT * FROM enrollments;
+
+INSERT INTO grades (grade, assignment_type, student_id, subject_id) 
+VALUES 
+(4, 'Midterm Exam', 1, 1),
+(3, 'Quiz', 1, 2),
+(5, 'Final Exam', 1, 3),
+(2, 'Essay', 2, 4),
+(4, 'Project', 2, 5),
+(3, 'Lab Report', 2, 6),
+(5, 'Final Exam', 3, 7),
+(4, 'Homework', 3, 8),
+(5, 'Midterm Exam', 3, 9),
+(3, 'Quiz', 4, 10),
+(4, 'Essay', 4, 1),
+(2, 'Lab Report', 5, 2),
+(5, 'Project', 5, 3),
+(3, 'Homework', 5, 4),
+(4, 'Quiz', 6, 5),
+(5, 'Midterm Exam', 6, 6),
+(2, 'Project', 6, 7),
+(4, 'Essay', 7, 8),
+(5, 'Lab Report', 7, 9),
+(3, 'Final Exam', 7, 10);
+
+SELECT * FROM grades;
